@@ -27,11 +27,20 @@ if (!$user || !password_verify($password, $user['password_hash'])) {
     jsonResponse(false, 'Credenciales incorrectas.');
 }
 
-// Iniciar sesión
+// Generar token de sesión único
+$token  = generateToken();
+$expira = date('Y-m-d H:i:s', strtotime('+8 hours'));
+
+// Guardar token en BD — invalida cualquier sesión anterior
+$db->prepare('UPDATE users SET session_token = ?, session_expira = ? WHERE id = ?')
+   ->execute([$token, $expira, $user['id']]);
+
+// Iniciar sesión PHP
 session_start();
 session_regenerate_id(true);
-$_SESSION['user_id'] = $user['id'];
-$_SESSION['nombre']  = $user['nombre'];
+$_SESSION['user_id']       = $user['id'];
+$_SESSION['nombre']        = $user['nombre'];
+$_SESSION['session_token'] = $token;
 
 jsonResponse(true, '¡Bienvenido!', [
     'nombre'   => $user['nombre'],
