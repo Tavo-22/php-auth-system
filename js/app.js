@@ -90,9 +90,50 @@ if (btnRegister) {
   });
 }
 
+// ── CARGA MASIVA CSV ─────────────────────────────────────────
+
+const btnCargar = document.getElementById('btn-cargar');
+
+if (btnCargar) {
+  btnCargar.dataset.texto = btnCargar.textContent;
+
+  btnCargar.addEventListener('click', async () => {
+    const input = document.getElementById('archivo-csv');
+    const resultado = document.getElementById('resultado');
+
+    if (!input.files.length) {
+      mostrarAlerta('Selecciona un archivo CSV.', 'error');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('archivo', input.files[0]);
+
+    setLoading(btnCargar, true);
+    resultado.textContent = '';
+
+    try {
+      const res = await axios.post('api/import_users.php', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      mostrarAlerta(res.data.msg, res.data.ok ? 'success' : 'error');
+
+      if (res.data.detalle) {
+        resultado.textContent = res.data.detalle.join('\n');
+      }
+
+    } catch (err) {
+      mostrarAlerta('Error de conexión. Intenta de nuevo.', 'error');
+    } finally {
+      setLoading(btnCargar, false);
+    }
+  });
+}
+
 // ── RECOVER ──────────────────────────────────────────────────
 
-const btnRecover = document.getElementById('btn-recover');
+/*const btnRecover = document.getElementById('btn-recover');
 
 if (btnRecover) {
   btnRecover.dataset.texto = btnRecover.textContent;
@@ -166,4 +207,4 @@ if (btnReset) {
       setLoading(btnReset, false);
     }
   });
-}
+}*/
